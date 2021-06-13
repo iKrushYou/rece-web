@@ -2,7 +2,7 @@ import useLocalStorage from './useLocalStorage';
 import ReceiptItem from '../types/ReceiptItem';
 import Person from '../types/Person';
 import { indexArray, setify } from '../functions/utils';
-import { useMemo } from 'react';
+import React, { createContext, Dispatch, FunctionComponent, SetStateAction, useContext, useMemo } from 'react';
 import currency from 'currency.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,18 +15,65 @@ export interface AppDataEntity {
   tax: number;
 }
 
-export default function useAppData() {
-  const [appData, setAppData] = useLocalStorage<AppDataEntity>('appData', {
-    items: [],
-    people: [],
-    personToItemsMap: {},
-    itemToPeopleMap: {},
-    tip: 0,
-    tax: 0,
-  });
+const appDataDefaults = {
+  items: [],
+  people: [],
+  personToItemsMap: {},
+  itemToPeopleMap: {},
+  tip: 0,
+  tax: 0,
+};
 
-  const addItem = (newItem: ReceiptItem) => {
-    setAppData((prev) => ({ ...prev, items: [...prev.items, newItem] }));
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
+
+interface AppDataContextProps {
+  appData: AppDataEntity;
+  setAppData: Dispatch<SetStateAction<AppDataEntity>>;
+  reset: () => void;
+  putItem: (newItem: ReceiptItem) => void;
+  removeItem: (itemId: string) => void;
+  splitItem: (itemId: string) => void;
+  addPerson: (newPerson: Person) => void;
+  removePerson: (personId: string) => void;
+  handleSetItemPerson: (itemId: string, personId: string, selected: boolean) => void;
+  itemCostMap: Record<string, number>;
+  subTotal: number;
+  total: number;
+  subTotalForPerson: (personId: string) => number;
+  taxForPerson: (personId: string) => number;
+  tipForPerson: (personId: string) => number;
+  totalForPerson: (personId: string) => number;
+}
+
+const AppDataContext = createContext<AppDataContextProps>({
+  appData: appDataDefaults,
+  setAppData: noop,
+  reset: noop,
+  putItem: noop,
+  removeItem: noop,
+  splitItem: noop,
+  addPerson: noop,
+  removePerson: noop,
+  handleSetItemPerson: noop,
+  itemCostMap: {},
+  subTotal: 0,
+  total: 0,
+  subTotalForPerson: () => 0,
+  taxForPerson: () => 0,
+  tipForPerson: () => 0,
+  totalForPerson: () => 0,
+});
+
+export const AppDataContextProvider: FunctionComponent = ({ children }) => {
+  const [appData, setAppData] = useLocalStorage<AppDataEntity>('appData', appDataDefaults);
+
+  const reset = () => {
+    setAppData(appDataDefaults);
+  };
+
+  const putItem = (newItem: ReceiptItem) => {
+    setAppData((prev) => ({ ...prev, items: [...prev.items.filter((item) => item.id !== newItem.id), newItem] }));
   };
 
   const removeItem = (itemId: string) => {
@@ -46,10 +93,6 @@ export default function useAppData() {
       cost: item.cost / splitCount,
     }));
     setAppData((prev) => ({ ...prev, items: [...prev.items.filter((item) => item.id !== itemId), ...newItems] }));
-  };
-
-  const updateItem = (newItem: ReceiptItem) => {
-    setAppData((prev) => ({ ...prev, items: prev.items.map((item) => (item.id === newItem.id ? newItem : item)) }));
   };
 
   const addPerson = (newPerson: Person) => {
@@ -109,22 +152,31 @@ export default function useAppData() {
   const totalForPerson = (personId: string) =>
     currency(subTotalForPerson(personId)).add(taxForPerson(personId)).add(tipForPerson(personId)).dollars();
 
-  return {
-    ...appData,
-    setAppData,
-    addItem,
-    removeItem,
-    splitItem,
-    updateItem,
-    addPerson,
-    removePerson,
-    handleSetItemPerson,
-    itemCostMap,
-    subTotal,
-    total,
-    subTotalForPerson,
-    taxForPerson,
-    tipForPerson,
-    totalForPerson,
-  };
-}
+  return (
+    <AppDataContext.Provider
+      value={{
+        appData,
+        setAppData,
+        reset,
+        putItem,
+        removeItem,
+        splitItem,
+        addPerson,
+        removePerson,
+        handleSetItemPerson,
+        itemCostMap,
+        subTotal,
+        total,
+        subTotalForPerson,
+        taxForPerson,
+        tipForPerson,
+        totalForPerson,
+      }}
+    >
+      {children}
+    </AppDataContext.Provider>
+  );
+};
+
+const useAppData = (): AppDataContextProps => useContext(AppDataContext);
+export default useAppData;

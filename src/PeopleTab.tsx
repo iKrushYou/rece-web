@@ -18,7 +18,11 @@ import { nameToInitials } from './functions/utils';
 import useAppData from './hooks/useAppData';
 
 const PeopleTab: FunctionComponent = () => {
-  const { people, addPerson, removePerson } = useAppData();
+  const {
+    appData: { people },
+    addPerson,
+    removePerson,
+  } = useAppData();
 
   const [personNameInput, setPersonNameInput] = useState('');
 

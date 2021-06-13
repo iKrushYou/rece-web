@@ -1,4 +1,4 @@
-export const nameToInitials = (name: string) => {
+export const nameToInitials = (name: string): string => {
   return name
     .toUpperCase()
     .split(' ')
@@ -6,11 +6,11 @@ export const nameToInitials = (name: string) => {
     .join('');
 };
 
-export const indexArray = (length: number) => new Array(length).fill(0).map((_, index) => index);
+export const indexArray = (length: number): number[] => new Array(length).fill(0).map((_, index) => index);
 
 export const setify = <T>(array: T[]): T[] => [...new Set(array)];
 
-export const calcPercent = (numerator: number, denominator: number, toFixed = 2) => {
-  if (isNaN(numerator) || isNaN(denominator) || denominator === 0) return 0;
+export const calcPercent = (numerator: number, denominator: number, toFixed = 2): string => {
+  if (isNaN(numerator) || isNaN(denominator) || denominator === 0) return (0).toFixed(2);
   return ((numerator / denominator) * 100.0).toFixed(toFixed);
 };
