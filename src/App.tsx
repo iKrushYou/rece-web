@@ -1,24 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { Container, Tab, Tabs } from '@material-ui/core';
+import Layout from './Layout';
+import ItemsTab from './ItemsTab';
+import PeopleTab from './PeopleTab';
+
+interface ReceiptItem {
+  id: string;
+  name: string;
+  cost: number;
+}
+
+interface ItemEntryForm {
+  name: string;
+  cost: number;
+}
+
+const itemEntryFormDefaults: Partial<ItemEntryForm> = {
+  name: '',
+  cost: undefined,
+};
 
 function App() {
+  const [currentTab, setCurrentTab] = useState(0);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Layout>
+        <Container>
+          <Tabs
+            value={currentTab}
+            onChange={(event, value) => setCurrentTab(value)}
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+            style={{ marginBottom: 20 }}
+          >
+            <Tab label="Items" />
+            <Tab label="People" />
+          </Tabs>
+          {currentTab === 0 && <ItemsTab />}
+          {currentTab === 1 && <PeopleTab />}
+        </Container>
+      </Layout>
     </div>
   );
 }
