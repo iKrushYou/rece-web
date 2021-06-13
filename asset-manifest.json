@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.js": "/rece-web/static/js/main.ec8cb4d7.chunk.js",
+    "main.js.map": "/rece-web/static/js/main.ec8cb4d7.chunk.js.map",
+    "runtime-main.js": "/rece-web/static/js/runtime-main.35ebb521.js",
+    "runtime-main.js.map": "/rece-web/static/js/runtime-main.35ebb521.js.map",
+    "static/js/2.7f1c9d2d.chunk.js": "/rece-web/static/js/2.7f1c9d2d.chunk.js",
+    "static/js/2.7f1c9d2d.chunk.js.map": "/rece-web/static/js/2.7f1c9d2d.chunk.js.map",
+    "index.html": "/rece-web/index.html",
+    "static/js/2.7f1c9d2d.chunk.js.LICENSE.txt": "/rece-web/static/js/2.7f1c9d2d.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.35ebb521.js",
+    "static/js/2.7f1c9d2d.chunk.js",
+    "static/js/main.ec8cb4d7.chunk.js"
+  ]
+}
