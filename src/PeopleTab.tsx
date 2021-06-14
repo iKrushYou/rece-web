@@ -8,7 +8,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemSecondaryAction,
-  ListItemText,
   TextField,
   Typography,
 } from '@material-ui/core';
@@ -16,11 +15,12 @@ import { v4 as uuidv4 } from 'uuid';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { nameToInitials } from './functions/utils';
 import useAppData from './hooks/useAppData';
+import EditableField from './components/EditableField';
 
 const PeopleTab: FunctionComponent = () => {
   const {
     appData: { people },
-    addPerson,
+    putPerson,
     removePerson,
   } = useAppData();
 
@@ -28,7 +28,7 @@ const PeopleTab: FunctionComponent = () => {
 
   const handleAddPerson = (name: string) => {
     if (!name) return;
-    addPerson({ id: uuidv4(), name: name.trim() });
+    putPerson({ id: uuidv4(), name: name.trim() });
     setPersonNameInput('');
   };
 
@@ -72,11 +72,8 @@ const PeopleTab: FunctionComponent = () => {
                 <ListItemAvatar>
                   <Avatar>{nameToInitials(person.name)}</Avatar>
                 </ListItemAvatar>
-                <ListItemText primary={person.name} />
+                <EditableField value={person.name} onChange={(name) => putPerson({ ...person, name })} />
                 <ListItemSecondaryAction>
-                  {/*<IconButton edge="end">*/}
-                  {/*  <EditIcon />*/}
-                  {/*</IconButton>*/}
                   <IconButton edge="end" onClick={() => removePerson(person.id)}>
                     <DeleteIcon />
                   </IconButton>

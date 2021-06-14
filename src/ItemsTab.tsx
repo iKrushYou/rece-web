@@ -1,20 +1,19 @@
-import React, { FunctionComponent, KeyboardEvent, useLayoutEffect, useRef, useState } from 'react';
+import React, { FunctionComponent, KeyboardEvent, useRef } from 'react';
 import {
   Avatar,
   Box,
   Button,
-  Card,
-  CardContent,
   Checkbox,
-  Collapse,
   Grid,
   IconButton,
+  makeStyles,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@material-ui/core';
@@ -25,6 +24,9 @@ import { nameToInitials } from './functions/utils';
 import useAppData from './hooks/useAppData';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CallSplitIcon from '@material-ui/icons/CallSplit';
+import EditableField from './components/EditableField';
+import { amber200 } from 'material-ui/styles/colors';
+import { amber } from '@material-ui/core/colors';
 
 interface ItemEntryForm {
   name: string;
@@ -47,6 +49,23 @@ const getVenmoPaymentLink = ({
   amount: number;
   note?: string;
 }) => `venmo://paycharge?txn=${txn}&recipients=${user}&amount=${amount}&note=${note}`;
+
+const useStyles = makeStyles({
+  table: {
+    backgroundColor: 'white',
+    '& td': {
+      whiteSpace: 'nowrap',
+    },
+  },
+  tableCellNoPadding: {
+    paddingTop: 7,
+    paddingBottom: 7,
+  },
+  tableCellEditPadding: {
+    paddingTop: 11,
+    paddingBottom: 10,
+  },
+});
 
 const ItemsTab: FunctionComponent = () => {
   const {
@@ -91,6 +110,7 @@ const ItemsTab: FunctionComponent = () => {
   };
 
   const theme = useTheme();
+  const classes = useStyles();
 
   return (
     <>
@@ -134,11 +154,11 @@ const ItemsTab: FunctionComponent = () => {
                       type={'number'}
                     />
                   )}
-                  rules={{ required: true, min: 0 }}
+                  rules={{ required: true }}
                 />
               </Grid>
               <Grid item xs={12} md={1}>
-                <Button variant={'contained'} color={'primary'} fullWidth>
+                <Button variant={'contained'} color={'primary'} fullWidth type={'submit'}>
                   Add
                 </Button>
               </Grid>
@@ -147,9 +167,9 @@ const ItemsTab: FunctionComponent = () => {
         </Grid>
         <Grid item xs={12}>
           <Box style={{ overflow: 'auto', position: 'relative' }}>
-            <Table>
+            <Table className={classes.table}>
               <TableHead>
-                <TableRow style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 101 }}>
+                <TableRow>
                   <TableCell
                     style={{ position: 'sticky', left: 0, backgroundColor: 'white', zIndex: 100, minWidth: 100 }}
                   >
@@ -159,37 +179,42 @@ const ItemsTab: FunctionComponent = () => {
                   <TableCell style={{ width: 1 }} />
                   {people.map((person) => (
                     <TableCell key={person.id} style={{ width: 1 }}>
-                      <Avatar style={{ height: 24, width: 24, fontSize: 12 }}>{nameToInitials(person.name)}</Avatar>
+                      <Tooltip title={person.name}>
+                        <Avatar style={{ height: 24, width: 24, fontSize: 12 }}>{nameToInitials(person.name)}</Avatar>
+                      </Tooltip>
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow
+                    key={item.id}
+                    style={{
+                      backgroundColor: (itemToPeopleMap[item.id]?.length || 0) === 0 ? amber[100] : 'white',
+                    }}
+                  >
                     <TableCell
                       style={{
                         position: 'sticky',
                         left: 0,
-                        // backgroundColor: 'white',
                         zIndex: 100,
-                        whiteSpace: 'nowrap',
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                        backgroundColor:
-                          (itemToPeopleMap[item.id]?.length || 0) === 0 ? theme.palette.warning.light : 'white',
+                        backgroundColor: (itemToPeopleMap[item.id]?.length || 0) === 0 ? amber[100] : 'white',
                       }}
+                      className={classes.tableCellEditPadding}
                     >
-                      {item.name}
+                      <EditableField value={item.name} onChange={(name) => putItem({ ...item, name })} />
                     </TableCell>
-                    <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
-                      <EditableNumberField
+                    <TableCell className={classes.tableCellEditPadding}>
+                      <EditableField
+                        type={'number'}
                         value={item.cost}
-                        onChange={(value) => putItem({ ...item, cost: value })}
+                        onChange={(value) => putItem({ ...item, cost: parseFloat(value) })}
                         formatValue={(value) => currency(value).format()}
                       />
                     </TableCell>
-                    <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
+                    <TableCell className={classes.tableCellNoPadding}>
                       <Box style={{ display: 'flex' }}>
                         <IconButton
                           size={'small'}
@@ -211,19 +236,26 @@ const ItemsTab: FunctionComponent = () => {
                       </Box>
                     </TableCell>
                     {people.map((person) => (
-                      <TableCell
-                        key={person.id}
-                        style={{
-                          paddingTop: 0,
-                          paddingBottom: 0,
-                        }}
-                      >
+                      <TableCell key={person.id} className={classes.tableCellNoPadding}>
                         <Checkbox
                           checked={personToItemsMap[person.id]?.includes(item.id) || false}
-                          onChange={(event) => handleSetItemPerson(item.id, person.id, event.target.checked)}
+                          onChange={(event) => handleSetItemPerson(item.id, [person.id], event.target.checked)}
                         />
                       </TableCell>
                     ))}
+                    <TableCell className={classes.tableCellNoPadding} style={{ width: 1 }}>
+                      <Button
+                        onClick={() =>
+                          handleSetItemPerson(
+                            item.id,
+                            people.map((person) => person.id),
+                            !personToItemsMap[people[0].id]?.includes(item.id),
+                          )
+                        }
+                      >
+                        All
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {/* SubTotal Row */}
@@ -235,38 +267,36 @@ const ItemsTab: FunctionComponent = () => {
                       backgroundColor: 'white',
                       zIndex: 100,
                       whiteSpace: 'nowrap',
-                      paddingTop: 0,
-                      paddingBottom: 0,
                     }}
                   >
-                    Subtotal
+                    <Typography>Subtotal</Typography>
                   </TableCell>
-                  <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
-                    <Button disabled style={{ color: 'inherit' }}>
-                      {currency(subTotal).format()}
-                    </Button>
+                  <TableCell>
+                    <Typography>{currency(subTotal).format()}</Typography>
                   </TableCell>
                   <TableCell />
                   {people.map((person) => (
-                    <TableCell key={person.id} style={{ paddingTop: 0, paddingBottom: 0 }}>
-                      <Button disabled style={{ color: 'inherit' }}>
-                        {currency(subTotalForPerson(person.id)).format()}
-                      </Button>
+                    <TableCell key={person.id}>
+                      <Typography>{currency(subTotalForPerson(person.id)).format()}</Typography>
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
                 {/* Tax Row */}
-                <TableRow>
+                <TableRow
+                  style={{
+                    backgroundColor: tax === 0 ? amber[100] : undefined,
+                  }}
+                >
                   <TableCell
                     style={{
                       position: 'sticky',
                       left: 0,
                       zIndex: 100,
                       whiteSpace: 'nowrap',
-                      paddingTop: 0,
-                      paddingBottom: 0,
-                      backgroundColor: tax === 0 ? theme.palette.warning.light : 'white',
+                      backgroundColor: tax === 0 ? amber[100] : 'white',
                     }}
+                    className={classes.tableCellEditPadding}
                   >
                     <Box
                       style={{
@@ -274,42 +304,48 @@ const ItemsTab: FunctionComponent = () => {
                         alignItems: 'center',
                       }}
                     >
-                      <Box style={{ marginRight: 10 }}>Tax</Box>
-                      <EditableNumberField
+                      <Typography style={{ marginRight: 10 }}>Tax</Typography>
+                      <EditableField
+                        type={'number'}
                         value={subTotal > 0 ? tax / subTotal : 0}
-                        onChange={(taxPct) => setAppData((prev) => ({ ...prev, tax: subTotal * (taxPct / 100.0) }))}
+                        onChange={(taxPct) =>
+                          setAppData((prev) => ({ ...prev, tax: subTotal * (parseFloat(taxPct) / 100.0) }))
+                        }
                         formatValue={(value) => `${(value * 100).toFixed(2)}%`}
                       />
                     </Box>
                   </TableCell>
-                  <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
-                    <EditableNumberField
+                  <TableCell className={classes.tableCellEditPadding}>
+                    <EditableField
+                      type={'number'}
                       value={tax}
-                      onChange={(tax) => setAppData((prev) => ({ ...prev, tax }))}
+                      onChange={(tax) => setAppData((prev) => ({ ...prev, tax: parseFloat(tax) }))}
                       formatValue={(value) => currency(value).format()}
                     />
                   </TableCell>
                   <TableCell />
                   {people.map((person) => (
-                    <TableCell key={person.id} style={{ paddingTop: 0, paddingBottom: 0 }}>
-                      <Button disabled style={{ color: 'inherit' }}>
-                        {currency(taxForPerson(person.id)).format()}
-                      </Button>
+                    <TableCell key={person.id}>
+                      <Typography>{currency(taxForPerson(person.id)).format()}</Typography>
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
                 {/* Tip Row */}
-                <TableRow>
+                <TableRow
+                  style={{
+                    backgroundColor: tip === 0 ? amber[100] : undefined,
+                  }}
+                >
                   <TableCell
                     style={{
                       position: 'sticky',
                       left: 0,
-                      backgroundColor: tip === 0 ? theme.palette.warning.light : 'white',
+                      backgroundColor: tip === 0 ? amber[100] : 'white',
                       zIndex: 100,
                       whiteSpace: 'nowrap',
-                      paddingTop: 0,
-                      paddingBottom: 0,
                     }}
+                    className={classes.tableCellEditPadding}
                   >
                     <Box
                       style={{
@@ -317,29 +353,32 @@ const ItemsTab: FunctionComponent = () => {
                         alignItems: 'center',
                       }}
                     >
-                      <Box style={{ marginRight: 10 }}>Tip</Box>
-                      <EditableNumberField
+                      <Typography style={{ marginRight: 10 }}>Tip</Typography>
+                      <EditableField
+                        type={'number'}
                         value={subTotal > 0 ? tip / subTotal : 0}
-                        onChange={(tipPct) => setAppData((prev) => ({ ...prev, tip: subTotal * (tipPct / 100.0) }))}
+                        onChange={(tipPct) =>
+                          setAppData((prev) => ({ ...prev, tip: subTotal * (parseFloat(tipPct) / 100.0) }))
+                        }
                         formatValue={(value) => `${(value * 100).toFixed(2)}%`}
                       />
                     </Box>
                   </TableCell>
-                  <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
-                    <EditableNumberField
+                  <TableCell className={classes.tableCellEditPadding}>
+                    <EditableField
+                      type={'number'}
                       value={tip}
-                      onChange={(tip) => setAppData((prev) => ({ ...prev, tip }))}
+                      onChange={(tip) => setAppData((prev) => ({ ...prev, tip: parseFloat(tip) }))}
                       formatValue={(value) => currency(value).format()}
                     />
                   </TableCell>
                   <TableCell />
                   {people.map((person) => (
-                    <TableCell key={person.id} style={{ paddingTop: 0, paddingBottom: 0 }}>
-                      <Button disabled style={{ color: 'inherit' }}>
-                        {currency(tipForPerson(person.id)).format()}
-                      </Button>
+                    <TableCell key={person.id}>
+                      <Typography>{currency(tipForPerson(person.id)).format()}</Typography>
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
                 {/* Total Row */}
                 <TableRow>
@@ -350,29 +389,26 @@ const ItemsTab: FunctionComponent = () => {
                       backgroundColor: 'white',
                       zIndex: 100,
                       whiteSpace: 'nowrap',
-                      paddingTop: 0,
-                      paddingBottom: 0,
                     }}
                   >
-                    Total
+                    <Typography>Total</Typography>
                   </TableCell>
                   <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
-                    <Button disabled style={{ color: 'inherit' }}>
-                      {currency(total).format()}
-                    </Button>
+                    <Typography>{currency(total).format()}</Typography>
                   </TableCell>
                   <TableCell />
                   {people.map((person) => (
                     <TableCell key={person.id} style={{ paddingTop: 0, paddingBottom: 0 }}>
-                      <Button
+                      <Typography
                         onClick={() => {
                           window.location.href = getVenmoPaymentLink({ amount: totalForPerson(person.id) });
                         }}
                       >
                         {currency(totalForPerson(person.id)).format()}
-                      </Button>
+                      </Typography>
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
               </TableBody>
             </Table>
@@ -384,32 +420,3 @@ const ItemsTab: FunctionComponent = () => {
 };
 
 export default ItemsTab;
-
-const EditableNumberField: FunctionComponent<{
-  value: number;
-  onChange: (value: number) => void;
-  formatValue?: (value: number) => string;
-}> = ({ value, onChange, formatValue = (value) => `${value}` }) => {
-  const [isEditMode, setIsEditMode] = useState(false);
-  const textFieldRef = useRef<HTMLInputElement>();
-
-  useLayoutEffect(() => {
-    if (isEditMode) textFieldRef.current?.focus();
-  }, [isEditMode]);
-
-  return isEditMode ? (
-    <TextField
-      placeholder={formatValue(value)}
-      onChange={(event) => onChange(parseFloat(event.target.value))}
-      type={'number'}
-      onBlur={() => setIsEditMode(false)}
-      onKeyDown={(event) => {
-        if (['Enter', 'Escape'].includes(event.code)) setIsEditMode(false);
-      }}
-      inputRef={textFieldRef}
-      style={{ width: 80, marginLeft: 10 }}
-    />
-  ) : (
-    <Button onClick={() => setIsEditMode(true)}>{formatValue(value)}</Button>
-  );
-};

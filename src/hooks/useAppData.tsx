@@ -34,9 +34,9 @@ interface AppDataContextProps {
   putItem: (newItem: ReceiptItem) => void;
   removeItem: (itemId: string) => void;
   splitItem: (itemId: string) => void;
-  addPerson: (newPerson: Person) => void;
+  putPerson: (newPerson: Person) => void;
   removePerson: (personId: string) => void;
-  handleSetItemPerson: (itemId: string, personId: string, selected: boolean) => void;
+  handleSetItemPerson: (itemId: string, personIds: string[], selected: boolean) => void;
   itemCostMap: Record<string, number>;
   subTotal: number;
   total: number;
@@ -53,7 +53,7 @@ const AppDataContext = createContext<AppDataContextProps>({
   putItem: noop,
   removeItem: noop,
   splitItem: noop,
-  addPerson: noop,
+  putPerson: noop,
   removePerson: noop,
   handleSetItemPerson: noop,
   itemCostMap: {},
@@ -73,7 +73,15 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
   };
 
   const putItem = (newItem: ReceiptItem) => {
-    setAppData((prev) => ({ ...prev, items: [...prev.items.filter((item) => item.id !== newItem.id), newItem] }));
+    setAppData((prev) => {
+      const index = prev.items.map((item) => item.id).indexOf(newItem.id);
+      if (index > -1) {
+        prev.items[index] = newItem;
+        return { ...prev, items: [...prev.items] };
+      } else {
+        return { ...prev, items: [...prev.items, newItem] };
+      }
+    });
   };
 
   const removeItem = (itemId: string) => {
@@ -95,28 +103,38 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
     setAppData((prev) => ({ ...prev, items: [...prev.items.filter((item) => item.id !== itemId), ...newItems] }));
   };
 
-  const addPerson = (newPerson: Person) => {
-    setAppData((prev) => ({ ...prev, people: [...prev.people, newPerson] }));
+  const putPerson = (newPerson: Person) => {
+    setAppData((prev) => {
+      const index = prev.people.map((item) => item.id).indexOf(newPerson.id);
+      if (index > -1) {
+        prev.people[index] = newPerson;
+        return { ...prev, people: [...prev.people] };
+      } else {
+        return { ...prev, people: [...prev.people, newPerson] };
+      }
+    });
   };
 
   const removePerson = (personId: string) => {
     setAppData((prev) => ({ ...prev, people: prev.people.filter((person) => person.id !== personId) }));
   };
 
-  const handleSetItemPerson = (itemId: string, personId: string, selected: boolean) => {
+  const handleSetItemPerson = (itemId: string, personIds: string[], selected: boolean) => {
     setAppData((prev) => {
       const { personToItemsMap, itemToPeopleMap } = prev;
-      if (!personToItemsMap[personId]) personToItemsMap[personId] = [];
-      if (selected) {
-        personToItemsMap[personId] = setify([...personToItemsMap[personId], itemId]);
-      } else {
-        personToItemsMap[personId] = personToItemsMap[personId].filter((_itemId) => _itemId !== itemId);
-      }
-      if (!itemToPeopleMap[itemId]) itemToPeopleMap[itemId] = [];
-      if (selected) {
-        itemToPeopleMap[itemId] = setify([...itemToPeopleMap[itemId], personId]);
-      } else {
-        itemToPeopleMap[itemId] = itemToPeopleMap[itemId].filter((_personId) => _personId !== personId);
+      for (const personId of personIds) {
+        if (!personToItemsMap[personId]) personToItemsMap[personId] = [];
+        if (selected) {
+          personToItemsMap[personId] = setify([...personToItemsMap[personId], itemId]);
+        } else {
+          personToItemsMap[personId] = personToItemsMap[personId].filter((_itemId) => _itemId !== itemId);
+        }
+        if (!itemToPeopleMap[itemId]) itemToPeopleMap[itemId] = [];
+        if (selected) {
+          itemToPeopleMap[itemId] = setify([...itemToPeopleMap[itemId], personId]);
+        } else {
+          itemToPeopleMap[itemId] = itemToPeopleMap[itemId].filter((_personId) => _personId !== personId);
+        }
       }
       return { ...prev, personToItemsMap, itemToPeopleMap };
     });
@@ -161,7 +179,7 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
         putItem,
         removeItem,
         splitItem,
-        addPerson,
+        putPerson,
         removePerson,
         handleSetItemPerson,
         itemCostMap,
