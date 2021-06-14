@@ -128,29 +128,29 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
 
   const subTotal = useMemo(
     () =>
-      appData.items.reduce(
-        (previousValue, currentValue) => currency(previousValue).add(currentValue.cost).dollars(),
-        0,
-      ),
+      appData.items.reduce((previousValue, currentValue) => {
+        console.log({ previousValue, currentValue });
+        return currency(previousValue).add(currentValue.cost).value;
+      }, 0.0),
     [appData.items],
   );
 
-  const total = currency(subTotal).add(appData.tax).add(appData.tip).dollars();
+  const total = currency(subTotal).add(appData.tax).add(appData.tip).value;
 
   const subTotalForPerson = (personId: string) =>
     appData.personToItemsMap[personId]?.reduce(
       (sum, itemId) =>
-        currency(sum).add(currency(itemCostMap[itemId]).divide(appData.itemToPeopleMap[itemId].length)).dollars(),
-      0,
+        currency(sum).add(currency(itemCostMap[itemId]).divide(appData.itemToPeopleMap[itemId].length)).value,
+      0.0,
     ) || 0;
 
   const percentForPerson = (personId: string) => subTotalForPerson(personId) / subTotal;
 
-  const taxForPerson = (personId: string) => currency(appData.tax).multiply(percentForPerson(personId)).dollars();
-  const tipForPerson = (personId: string) => currency(appData.tip).multiply(percentForPerson(personId)).dollars();
+  const taxForPerson = (personId: string) => currency(appData.tax).multiply(percentForPerson(personId)).value;
+  const tipForPerson = (personId: string) => currency(appData.tip).multiply(percentForPerson(personId)).value;
 
   const totalForPerson = (personId: string) =>
-    currency(subTotalForPerson(personId)).add(taxForPerson(personId)).add(tipForPerson(personId)).dollars();
+    currency(subTotalForPerson(personId)).add(taxForPerson(personId)).add(tipForPerson(personId)).value;
 
   return (
     <AppDataContext.Provider
