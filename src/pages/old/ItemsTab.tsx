@@ -6,7 +6,7 @@ import {
   Checkbox,
   Grid,
   IconButton,
-  makeStyles,
+  styled,
   Table,
   TableBody,
   TableCell,
@@ -20,12 +20,11 @@ import {
 import { Controller, FieldPath, useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import currency from 'currency.js';
-import { nameToInitials } from './functions/utils';
-import useAppData from './hooks/useAppData';
+import { nameToInitials } from '../../functions/utils';
+import useAppData from '../../hooks/useAppData';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CallSplitIcon from '@material-ui/icons/CallSplit';
-import EditableField from './components/EditableField';
-import { amber200 } from 'material-ui/styles/colors';
+import EditableField from '../../components/EditableField';
 import { amber } from '@material-ui/core/colors';
 
 interface ItemEntryForm {
@@ -50,22 +49,12 @@ const getVenmoPaymentLink = ({
   note?: string;
 }) => `venmo://paycharge?txn=${txn}&recipients=${user}&amount=${amount}&note=${note}`;
 
-const useStyles = makeStyles({
-  table: {
-    backgroundColor: 'white',
-    '& td': {
-      whiteSpace: 'nowrap',
-    },
+const StyledTable = styled(Table)(() => ({
+  backgroundColor: 'white',
+  '& td': {
+    whiteSpace: 'nowrap',
   },
-  tableCellNoPadding: {
-    paddingTop: 7,
-    paddingBottom: 7,
-  },
-  tableCellEditPadding: {
-    paddingTop: 11,
-    paddingBottom: 10,
-  },
-});
+}));
 
 const ItemsTab: FunctionComponent = () => {
   const {
@@ -82,6 +71,12 @@ const ItemsTab: FunctionComponent = () => {
     tipForPerson,
     totalForPerson,
   } = useAppData();
+
+  const { reset: resetAll } = useAppData();
+
+  const handleReset = () => {
+    if (confirm("Are you sure you'd like to reset?")) resetAll();
+  };
 
   const { control, handleSubmit, reset } = useForm<ItemEntryForm>({ defaultValues: itemEntryFormDefaults });
 
@@ -110,10 +105,12 @@ const ItemsTab: FunctionComponent = () => {
   };
 
   const theme = useTheme();
-  const classes = useStyles();
 
   return (
     <>
+      <Button onClick={handleReset} style={{ color: 'inherit' }}>
+        Reset
+      </Button>
       <Typography>Enter Receipt Items</Typography>
       <Grid container spacing={4}>
         <Grid item xs={12}>
@@ -167,14 +164,10 @@ const ItemsTab: FunctionComponent = () => {
         </Grid>
         <Grid item xs={12}>
           <Box style={{ overflow: 'auto', position: 'relative' }}>
-            <Table className={classes.table}>
+            <StyledTable>
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    style={{ position: 'sticky', left: 0, backgroundColor: 'white', zIndex: 100, minWidth: 100 }}
-                  >
-                    Name
-                  </TableCell>
+                  <TableCell style={{ position: 'sticky', left: 0, backgroundColor: 'white', zIndex: 100, minWidth: 100 }}>Name</TableCell>
                   <TableCell style={{ minWidth: 200 }}>Cost</TableCell>
                   <TableCell style={{ width: 1 }} />
                   {people.map((person) => (
@@ -202,26 +195,20 @@ const ItemsTab: FunctionComponent = () => {
                         zIndex: 100,
                         backgroundColor: (itemToPeopleMap[item.id]?.length || 0) === 0 ? amber[100] : 'white',
                       }}
-                      className={classes.tableCellEditPadding}
                     >
                       <EditableField value={item.name} onChange={(name) => putItem({ ...item, name })} />
                     </TableCell>
-                    <TableCell className={classes.tableCellEditPadding}>
+                    <TableCell>
                       <EditableField
                         type={'number'}
-                        value={item.cost}
+                        value={String(item.cost)}
                         onChange={(value) => putItem({ ...item, cost: parseFloat(value) })}
                         formatValue={(value) => currency(value).format()}
                       />
                     </TableCell>
-                    <TableCell className={classes.tableCellNoPadding}>
+                    <TableCell>
                       <Box style={{ display: 'flex' }}>
-                        <IconButton
-                          size={'small'}
-                          edge="end"
-                          onClick={() => splitItem(item.id)}
-                          style={{ marginRight: theme.spacing(1) }}
-                        >
+                        <IconButton size={'small'} edge="end" onClick={() => splitItem(item.id)} style={{ marginRight: theme.spacing(1) }}>
                           <CallSplitIcon color={'primary'} />
                         </IconButton>
                         <IconButton
@@ -236,14 +223,14 @@ const ItemsTab: FunctionComponent = () => {
                       </Box>
                     </TableCell>
                     {people.map((person) => (
-                      <TableCell key={person.id} className={classes.tableCellNoPadding}>
+                      <TableCell key={person.id}>
                         <Checkbox
                           checked={personToItemsMap[person.id]?.includes(item.id) || false}
                           onChange={(event) => handleSetItemPerson(item.id, [person.id], event.target.checked)}
                         />
                       </TableCell>
                     ))}
-                    <TableCell className={classes.tableCellNoPadding} style={{ width: 1 }}>
+                    <TableCell style={{ width: 1 }}>
                       <Button
                         onClick={() =>
                           handleSetItemPerson(
@@ -296,7 +283,6 @@ const ItemsTab: FunctionComponent = () => {
                       whiteSpace: 'nowrap',
                       backgroundColor: tax === 0 ? amber[100] : 'white',
                     }}
-                    className={classes.tableCellEditPadding}
                   >
                     <Box
                       style={{
@@ -307,18 +293,16 @@ const ItemsTab: FunctionComponent = () => {
                       <Typography style={{ marginRight: 10 }}>Tax</Typography>
                       <EditableField
                         type={'number'}
-                        value={subTotal > 0 ? tax / subTotal : 0}
-                        onChange={(taxPct) =>
-                          setAppData((prev) => ({ ...prev, tax: subTotal * (parseFloat(taxPct) / 100.0) }))
-                        }
-                        formatValue={(value) => `${(value * 100).toFixed(2)}%`}
+                        value={String(subTotal > 0 ? tax / subTotal : 0)}
+                        onChange={(taxPct) => setAppData((prev) => ({ ...prev, tax: subTotal * (parseFloat(taxPct) / 100.0) }))}
+                        formatValue={(value) => `${(parseFloat(value) * 100).toFixed(2)}%`}
                       />
                     </Box>
                   </TableCell>
-                  <TableCell className={classes.tableCellEditPadding}>
+                  <TableCell>
                     <EditableField
                       type={'number'}
-                      value={tax}
+                      value={String(tax)}
                       onChange={(tax) => setAppData((prev) => ({ ...prev, tax: parseFloat(tax) }))}
                       formatValue={(value) => currency(value).format()}
                     />
@@ -345,7 +329,6 @@ const ItemsTab: FunctionComponent = () => {
                       zIndex: 100,
                       whiteSpace: 'nowrap',
                     }}
-                    className={classes.tableCellEditPadding}
                   >
                     <Box
                       style={{
@@ -356,18 +339,16 @@ const ItemsTab: FunctionComponent = () => {
                       <Typography style={{ marginRight: 10 }}>Tip</Typography>
                       <EditableField
                         type={'number'}
-                        value={subTotal > 0 ? tip / subTotal : 0}
-                        onChange={(tipPct) =>
-                          setAppData((prev) => ({ ...prev, tip: subTotal * (parseFloat(tipPct) / 100.0) }))
-                        }
-                        formatValue={(value) => `${(value * 100).toFixed(2)}%`}
+                        value={String(subTotal > 0 ? tip / subTotal : 0)}
+                        onChange={(tipPct) => setAppData((prev) => ({ ...prev, tip: subTotal * (parseFloat(tipPct) / 100.0) }))}
+                        formatValue={(value) => `${(parseFloat(value) * 100).toFixed(2)}%`}
                       />
                     </Box>
                   </TableCell>
-                  <TableCell className={classes.tableCellEditPadding}>
+                  <TableCell>
                     <EditableField
                       type={'number'}
-                      value={tip}
+                      value={String(tip)}
                       onChange={(tip) => setAppData((prev) => ({ ...prev, tip: parseFloat(tip) }))}
                       formatValue={(value) => currency(value).format()}
                     />
@@ -411,7 +392,7 @@ const ItemsTab: FunctionComponent = () => {
                   <TableCell />
                 </TableRow>
               </TableBody>
-            </Table>
+            </StyledTable>
           </Box>
         </Grid>
       </Grid>

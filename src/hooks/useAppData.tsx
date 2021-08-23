@@ -91,9 +91,7 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
   const splitItem = (itemId: string) => {
     const item = appData.items.find((item) => item.id === itemId);
     if (!item) return;
-    const splitCount = parseInt(
-      prompt(`How many items should (${item.name} - ${currency(item.cost).format()}) be split into?`) || '',
-    );
+    const splitCount = parseInt(prompt(`How many items should (${item.name} - ${currency(item.cost).format()}) be split into?`) || '');
     if (!splitCount || isNaN(splitCount)) return;
     const newItems: ReceiptItem[] = indexArray(splitCount).map(() => ({
       id: uuidv4(),
@@ -147,7 +145,6 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
   const subTotal = useMemo(
     () =>
       appData.items.reduce((previousValue, currentValue) => {
-        console.log({ previousValue, currentValue });
         return currency(previousValue).add(currentValue.cost).value;
       }, 0.0),
     [appData.items],
@@ -157,8 +154,7 @@ export const AppDataContextProvider: FunctionComponent = ({ children }) => {
 
   const subTotalForPerson = (personId: string) =>
     appData.personToItemsMap[personId]?.reduce(
-      (sum, itemId) =>
-        currency(sum).add(currency(itemCostMap[itemId]).divide(appData.itemToPeopleMap[itemId].length)).value,
+      (sum, itemId) => currency(sum).add(currency(itemCostMap[itemId]).divide(appData.itemToPeopleMap[itemId].length)).value,
       0.0,
     ) || 0;
 

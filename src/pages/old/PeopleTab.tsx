@@ -13,9 +13,9 @@ import {
 } from '@material-ui/core';
 import { v4 as uuidv4 } from 'uuid';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { nameToInitials } from './functions/utils';
-import useAppData from './hooks/useAppData';
-import EditableField from './components/EditableField';
+import { nameToInitials } from '../../functions/utils';
+import useAppData from '../../hooks/useAppData';
+import EditableField from '../../components/EditableField';
 
 const PeopleTab: FunctionComponent = () => {
   const {
@@ -54,12 +54,7 @@ const PeopleTab: FunctionComponent = () => {
               />
             </Grid>
             <Grid item xs={12} md={1}>
-              <Button
-                variant={'contained'}
-                color={'primary'}
-                onClick={() => handleAddPerson(personNameInput)}
-                fullWidth
-              >
+              <Button variant={'contained'} color={'primary'} onClick={() => handleAddPerson(personNameInput)} fullWidth>
                 Add
               </Button>
             </Grid>

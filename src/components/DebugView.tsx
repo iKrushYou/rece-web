@@ -1,60 +1,9 @@
 import React, { FunctionComponent, useState } from 'react';
-import {
-  AppBar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Collapse,
-  Container,
-  Grid,
-  makeStyles,
-  Toolbar,
-  Typography,
-} from '@material-ui/core';
-import useAppData from './hooks/useAppData';
+import useAppData from '../hooks/useAppData';
+import { Box, Button, Card, CardContent, Collapse, Container, Typography } from '@material-ui/core';
 import currency from 'currency.js';
 
-const useStyles = makeStyles((theme) => ({
-  offset: theme.mixins.toolbar,
-}));
-
-const Layout: FunctionComponent = ({ children }) => {
-  const classes = useStyles();
-
-  const { reset } = useAppData();
-
-  const handleReset = () => {
-    if (confirm("Are you sure you'd like to reset?")) reset();
-  };
-
-  return (
-    <>
-      <Box style={{ paddingBottom: 500 }}>
-        <AppBar position="fixed">
-          <Toolbar>
-            {/*<IconButton edge="start" color="inherit" aria-label="menu">*/}
-            {/*  <MenuIcon />*/}
-            {/*</IconButton>*/}
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
-              Rece
-            </Typography>
-            <Button onClick={handleReset} style={{ color: 'inherit' }}>
-              Reset
-            </Button>
-          </Toolbar>
-        </AppBar>
-        <Box className={classes.offset} />
-        {children}
-      </Box>
-      <DebugView />
-    </>
-  );
-};
-
-export default Layout;
-
-const DebugView: FunctionComponent = () => {
+export const DebugView: FunctionComponent = () => {
   const [showDebugView, setShowDebugView] = useState(false);
 
   const { appData, subTotalForPerson, taxForPerson, tipForPerson, totalForPerson, subTotal, total } = useAppData();
@@ -77,12 +26,7 @@ const DebugView: FunctionComponent = () => {
                       {person.name} - {currency(subTotalForPerson(person.id)).format()}
                     </div>
                   ))}
-                  <div>
-                    Sum -{' '}
-                    {appData.people
-                      .reduce((sum, person) => sum.add(subTotalForPerson(person.id)), currency(0))
-                      .format()}
-                  </div>
+                  <div>Sum - {appData.people.reduce((sum, person) => sum.add(subTotalForPerson(person.id)), currency(0)).format()}</div>
                 </div>
                 <div>
                   <Typography>Tax ({currency(appData.tax).format()})</Typography>
@@ -91,10 +35,7 @@ const DebugView: FunctionComponent = () => {
                       {person.name} - {currency(taxForPerson(person.id)).format()}
                     </div>
                   ))}
-                  <div>
-                    Sum -{' '}
-                    {appData.people.reduce((sum, person) => sum.add(taxForPerson(person.id)), currency(0)).format()}
-                  </div>
+                  <div>Sum - {appData.people.reduce((sum, person) => sum.add(taxForPerson(person.id)), currency(0)).format()}</div>
                 </div>
                 <div>
                   <Typography>Tip ({currency(appData.tip).format()})</Typography>
@@ -103,10 +44,7 @@ const DebugView: FunctionComponent = () => {
                       {person.name} - {currency(tipForPerson(person.id)).format()}
                     </div>
                   ))}
-                  <div>
-                    Sum -{' '}
-                    {appData.people.reduce((sum, person) => sum.add(tipForPerson(person.id)), currency(0)).format()}
-                  </div>
+                  <div>Sum - {appData.people.reduce((sum, person) => sum.add(tipForPerson(person.id)), currency(0)).format()}</div>
                 </div>
                 <div>
                   <Typography>Total ({currency(total).format()})</Typography>
@@ -115,10 +53,7 @@ const DebugView: FunctionComponent = () => {
                       {person.name} - {currency(totalForPerson(person.id)).format()}
                     </div>
                   ))}
-                  <div>
-                    Sum -{' '}
-                    {appData.people.reduce((sum, person) => sum.add(totalForPerson(person.id)), currency(0)).format()}
-                  </div>
+                  <div>Sum - {appData.people.reduce((sum, person) => sum.add(totalForPerson(person.id)), currency(0)).format()}</div>
                 </div>
               </UncontrolledCollapse>
             </CardContent>
