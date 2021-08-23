@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.js": "/rece-web/static/js/main.efd83cb8.chunk.js",
-    "main.js.map": "/rece-web/static/js/main.efd83cb8.chunk.js.map",
+    "main.js": "/rece-web/static/js/main.b420e82d.chunk.js",
+    "main.js.map": "/rece-web/static/js/main.b420e82d.chunk.js.map",
     "runtime-main.js": "/rece-web/static/js/runtime-main.35ebb521.js",
     "runtime-main.js.map": "/rece-web/static/js/runtime-main.35ebb521.js.map",
-    "static/js/2.fa86897a.chunk.js": "/rece-web/static/js/2.fa86897a.chunk.js",
-    "static/js/2.fa86897a.chunk.js.map": "/rece-web/static/js/2.fa86897a.chunk.js.map",
+    "static/js/2.5bf82dfb.chunk.js": "/rece-web/static/js/2.5bf82dfb.chunk.js",
+    "static/js/2.5bf82dfb.chunk.js.map": "/rece-web/static/js/2.5bf82dfb.chunk.js.map",
     "index.html": "/rece-web/index.html",
-    "static/js/2.fa86897a.chunk.js.LICENSE.txt": "/rece-web/static/js/2.fa86897a.chunk.js.LICENSE.txt"
+    "static/js/2.5bf82dfb.chunk.js.LICENSE.txt": "/rece-web/static/js/2.5bf82dfb.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.35ebb521.js",
-    "static/js/2.fa86897a.chunk.js",
-    "static/js/main.efd83cb8.chunk.js"
+    "static/js/2.5bf82dfb.chunk.js",
+    "static/js/main.b420e82d.chunk.js"
   ]
 }
